@@ -15,7 +15,6 @@ import javax.swing.event.DocumentListener;
 /** Swing user interface for the OIBSIP train reservation demonstration. */
 public final class Main {
     private static final Color NAVY = new Color(24, 43, 75);
-    private static final Color BLUE = new Color(37, 99, 235);
     private static final AuthService AUTH = new AuthService();
     private static final BookingService BOOKINGS = new BookingService();
     // Small demonstration catalogue; this is not a live railway timetable.
@@ -234,6 +233,16 @@ public final class Main {
         content.add(buttons, BorderLayout.SOUTH);
 
         final BookingService.Booking[] fetchedBooking = new BookingService.Booking[1];
+        pnr.getDocument().addDocumentListener(new DocumentListener() {
+            private void invalidateFetchedBooking() {
+                fetchedBooking[0] = null;
+                cancelBooking.setEnabled(false);
+                details.setText("PNR changed. Click Fetch to load the booking again.");
+            }
+            @Override public void insertUpdate(DocumentEvent event) { invalidateFetchedBooking(); }
+            @Override public void removeUpdate(DocumentEvent event) { invalidateFetchedBooking(); }
+            @Override public void changedUpdate(DocumentEvent event) { invalidateFetchedBooking(); }
+        });
         fetch.addActionListener(event -> {
             String code = pnr.getText().trim();
             if (!code.matches("\\d{10}")) {
