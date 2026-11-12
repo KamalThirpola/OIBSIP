@@ -30,7 +30,7 @@ public final class BookingService {
         String coach = required(travelClass, "Travel class");
 
         if (age < 1 || age > 120) throw new IllegalArgumentException("Age must be between 1 and 120.");
-        if (!number.matches("[A-Za-z0-9-]{1,15}")) throw new IllegalArgumentException("Train number is invalid.");
+        if (!number.matches("[0-9]{1,10}")) throw new IllegalArgumentException("Train number must contain 1 to 10 digits.");
         if (from.equalsIgnoreCase(to)) throw new IllegalArgumentException("Source and destination must be different.");
         if (journeyDate == null || journeyDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Journey date must be today or a future date.");
