@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /** Swing user interface for the OIBSIP train reservation demonstration. */
 public final class Main {
@@ -15,6 +18,11 @@ public final class Main {
     private static final Color BLUE = new Color(37, 99, 235);
     private static final AuthService AUTH = new AuthService();
     private static final BookingService BOOKINGS = new BookingService();
+    // Small demonstration catalogue; this is not a live railway timetable.
+    private static final Map<String, String> TRAIN_CATALOG = Map.of(
+            "12001", "Bhopal Shatabdi Express",
+            "12951", "Mumbai Rajdhani Express",
+            "12301", "Howrah Rajdhani Express");
 
     private Main() { }
 
@@ -144,6 +152,17 @@ public final class Main {
         JTextField age = new JTextField(8);
         JTextField trainNumber = new JTextField(12);
         JTextField trainName = new JTextField(20);
+        trainName.setEditable(false);
+        trainName.setToolTipText("Automatically filled from the demonstration train catalogue");
+        trainNumber.getDocument().addDocumentListener(new DocumentListener() {
+            private void updateTrainName() {
+                String number = trainNumber.getText().trim();
+                trainName.setText(TRAIN_CATALOG.getOrDefault(number, ""));
+            }
+            @Override public void insertUpdate(DocumentEvent event) { updateTrainName(); }
+            @Override public void removeUpdate(DocumentEvent event) { updateTrainName(); }
+            @Override public void changedUpdate(DocumentEvent event) { updateTrainName(); }
+        });
         JTextField source = new JTextField(16);
         JTextField destination = new JTextField(16);
         JTextField date = new JTextField(LocalDate.now().plusDays(1).toString(), 12);
@@ -154,7 +173,15 @@ public final class Main {
         addField(form, "Passenger name", passenger);
         addField(form, "Passenger age", age);
         addField(form, "Train number", trainNumber);
-        addField(form, "Train name", trainName);
+        addField(form, "Train name (auto-filled)", trainName);
+        JLabel trainHint = new JLabel("Demo train numbers: 12001, 12951, 12301");
+        trainHint.setForeground(new Color(90, 100, 115));
+        GridBagConstraints hintConstraints = new GridBagConstraints();
+        hintConstraints.gridx = 1;
+        hintConstraints.gridy = 4;
+        hintConstraints.anchor = GridBagConstraints.WEST;
+        hintConstraints.insets = new Insets(0, 6, 4, 6);
+        form.add(trainHint, hintConstraints);
         addField(form, "Source station", source);
         addField(form, "Destination station", destination);
         addField(form, "Journey date (YYYY-MM-DD)", date);
@@ -166,6 +193,10 @@ public final class Main {
 
         try {
             int passengerAge = Integer.parseInt(age.getText().trim());
+            if (trainName.getText().isBlank()) {
+                throw new IllegalArgumentException(
+                        "Enter a supported demo train number: 12001, 12951 or 12301.");
+            }
             LocalDate journeyDate = LocalDate.parse(date.getText().trim());
             BookingService.Booking booking = BOOKINGS.book(user.id(), passenger.getText(),
                     passengerAge, trainNumber.getText(), trainName.getText(),
