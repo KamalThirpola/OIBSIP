@@ -11,7 +11,8 @@ A desktop train-reservation application built with **Java 17, Swing, JDBC and SQ
 - Numeric train-number validation
 - Unique 10-digit PNR generation
 - Booking confirmation with booking details
-- PNR-based ticket cancellation with confirmation
+- PNR-based booking lookup with a dedicated Fetch button
+- Confirmation-based cancellation that deletes the selected booking from SQLite
 - Personal booking history
 - SQLite database created automatically on first launch
 - Prepared SQL statements and input validation
@@ -74,7 +75,12 @@ Java Development-Task 1-Online Reservation System/
 - [x] Reservation form
 - [x] PNR generation
 - [x] Confirmation dialog
-- [x] Cancellation by PNR
+- [x] PNR lookup using Fetch
+- [x] Confirmation-based cancellation and database deletion
 - [x] Booking history
 - [x] SQLite persistence
 - [x] Input validation
+
+## Verification status
+
+The source code includes the features listed above. Run the application locally and complete the manual test checklist before treating the project as fully tested or submitting it. GUI behavior has not been verified in this repository update.
