@@ -208,39 +208,90 @@ public final class Main {
 
     private static void showCancellation(JFrame parent, AuthService.User user) {
         JTextField pnr = new JTextField(14);
-        JPanel form = formPanel();
-        addField(form, "10-digit PNR", pnr);
-        int choice = JOptionPane.showConfirmDialog(parent, form, "Cancel ticket",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (choice != JOptionPane.OK_OPTION) return;
-        String code = pnr.getText().trim();
-        if (!code.matches("\\d{10}")) {
-            showError("Enter a valid 10-digit PNR.");
-            return;
-        }
-        try {
-            var booking = BOOKINGS.findByPnr(code, user.id());
-            if (booking.isEmpty()) {
-                showError("No booking found for this PNR in your account.");
+        JButton fetch = new JButton("Fetch");
+        JTextArea details = new JTextArea(8, 38);
+        details.setEditable(false);
+        details.setLineWrap(true);
+        details.setWrapStyleWord(true);
+        details.setText("Enter your 10-digit PNR and click Fetch to view booking details.");
+
+        JPanel top = new JPanel(new BorderLayout(8, 0));
+        top.add(new JLabel("10-digit PNR:"), BorderLayout.WEST);
+        top.add(pnr, BorderLayout.CENTER);
+        top.add(fetch, BorderLayout.EAST);
+
+        JPanel content = new JPanel(new BorderLayout(8, 12));
+        content.setBorder(new EmptyBorder(12, 12, 12, 12));
+        content.add(top, BorderLayout.NORTH);
+        content.add(new JScrollPane(details), BorderLayout.CENTER);
+
+        JButton cancelBooking = new JButton("Confirm cancellation");
+        JButton close = new JButton("Close");
+        cancelBooking.setEnabled(false);
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttons.add(cancelBooking);
+        buttons.add(close);
+        content.add(buttons, BorderLayout.SOUTH);
+
+        final BookingService.Booking[] fetchedBooking = new BookingService.Booking[1];
+        fetch.addActionListener(event -> {
+            String code = pnr.getText().trim();
+            if (!code.matches("\\d{10}")) {
+                fetchedBooking[0] = null;
+                cancelBooking.setEnabled(false);
+                details.setText("Enter a valid 10-digit PNR.");
                 return;
             }
-            if (!"CONFIRMED".equals(booking.get().status())) {
-                showError("This ticket is already cancelled.");
+            try {
+                var booking = BOOKINGS.findByPnr(code, user.id());
+                if (booking.isEmpty()) {
+                    fetchedBooking[0] = null;
+                    cancelBooking.setEnabled(false);
+                    details.setText("No booking found for this PNR in your account.");
+                    return;
+                }
+                fetchedBooking[0] = booking.get();
+                details.setText(bookingDetails(fetchedBooking[0]));
+                cancelBooking.setEnabled(true);
+            } catch (SQLException exception) {
+                fetchedBooking[0] = null;
+                cancelBooking.setEnabled(false);
+                details.setText("Could not fetch booking: " + exception.getMessage());
+            }
+        });
+
+        JDialog dialog = new JDialog(parent, "Fetch and cancel reservation", true);
+        cancelBooking.addActionListener(event -> {
+            if (fetchedBooking[0] == null) {
+                showError("Fetch a valid booking before cancelling.");
                 return;
             }
-            int confirm = JOptionPane.showConfirmDialog(parent,
-                    "Cancel this booking?\n\n" + bookingDetails(booking.get()),
+            int confirm = JOptionPane.showConfirmDialog(dialog,
+                    "Are you sure you want to permanently delete this booking?\\n\\n"
+                            + bookingDetails(fetchedBooking[0]),
                     "Confirm cancellation", JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE);
-            if (confirm == JOptionPane.YES_OPTION) {
-                boolean cancelled = BOOKINGS.cancel(code, user.id());
-                JOptionPane.showMessageDialog(parent, cancelled
-                        ? "Ticket " + code + " has been cancelled."
-                        : "The ticket could not be cancelled. Refresh and try again.");
+            if (confirm != JOptionPane.YES_OPTION) return;
+            try {
+                boolean cancelled = BOOKINGS.cancel(fetchedBooking[0].pnr(), user.id());
+                if (cancelled) {
+                    JOptionPane.showMessageDialog(dialog,
+                            "Booking " + fetchedBooking[0].pnr() + " has been cancelled and removed.");
+                    dialog.dispose();
+                } else {
+                    showError("The booking was not cancelled. It may already have been removed.");
+                }
+            } catch (SQLException exception) {
+                showError("Cancellation failed: " + exception.getMessage());
             }
-        } catch (SQLException exception) {
-            showError("Cancellation failed: " + exception.getMessage());
-        }
+        });
+        close.addActionListener(event -> dialog.dispose());
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setContentPane(content);
+        dialog.pack();
+        dialog.setMinimumSize(new Dimension(520, 300));
+        dialog.setLocationRelativeTo(parent);
+        dialog.setVisible(true);
     }
 
     private static void showHistory(JFrame parent, AuthService.User user) {
