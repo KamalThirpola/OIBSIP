@@ -7,6 +7,8 @@ A desktop train-reservation application built with **Java 17, Swing, JDBC and SQ
 - User registration and login
 - Password hashing with PBKDF2 (no plain-text passwords stored)
 - Train reservation form with passenger, train, class, route and journey-date validation
+- Demo train-name auto-fill for train numbers 12001, 12951 and 12301 (not a live railway lookup)
+- Numeric train-number validation
 - Unique 10-digit PNR generation
 - Booking confirmation with booking details
 - PNR-based ticket cancellation with confirmation
