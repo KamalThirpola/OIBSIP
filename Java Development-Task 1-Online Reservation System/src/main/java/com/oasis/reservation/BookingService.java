@@ -62,7 +62,7 @@ public final class BookingService {
     }
 
     public boolean cancel(String pnr, int userId) throws SQLException {
-        String sql = "UPDATE bookings SET status='CANCELLED' WHERE pnr=? AND user_id=? AND status='CONFIRMED'";
+        String sql = "DELETE FROM bookings WHERE pnr=? AND user_id=? AND status='CONFIRMED'";
         try (Connection connection = Database.connect();
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, pnr == null ? "" : pnr.trim());
