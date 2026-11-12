@@ -174,14 +174,6 @@ public final class Main {
         addField(form, "Passenger age", age);
         addField(form, "Train number", trainNumber);
         addField(form, "Train name (auto-filled)", trainName);
-        JLabel trainHint = new JLabel("Demo train numbers: 12001, 12951, 12301");
-        trainHint.setForeground(new Color(90, 100, 115));
-        GridBagConstraints hintConstraints = new GridBagConstraints();
-        hintConstraints.gridx = 1;
-        hintConstraints.gridy = 4;
-        hintConstraints.anchor = GridBagConstraints.WEST;
-        hintConstraints.insets = new Insets(0, 6, 4, 6);
-        form.add(trainHint, hintConstraints);
         addField(form, "Source station", source);
         addField(form, "Destination station", destination);
         addField(form, "Journey date (YYYY-MM-DD)", date);
