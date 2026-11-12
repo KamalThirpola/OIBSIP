@@ -261,7 +261,11 @@ public final class Main {
                 }
                 fetchedBooking[0] = booking.get();
                 details.setText(bookingDetails(fetchedBooking[0]));
-                cancelBooking.setEnabled(true);
+                boolean confirmed = "CONFIRMED".equals(fetchedBooking[0].status());
+                cancelBooking.setEnabled(confirmed);
+                if (!confirmed) {
+                    details.append("\nThis booking is not active and cannot be cancelled again.");
+                }
             } catch (SQLException exception) {
                 fetchedBooking[0] = null;
                 cancelBooking.setEnabled(false);
